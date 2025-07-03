@@ -75,8 +75,6 @@ def main(
         else:
             click.echo(f"Invalid format: {format}", err=True)
             sys.exit(1)
-
-
     except FileNotFoundError as e:
         click.echo(f"Error: {e}", err=True)
         sys.exit(1)
@@ -109,13 +107,13 @@ def save_segments_to_srt(segments: List[AlignedSegment], output_path: Path):
 def save_segments_to_csv(segments: List[AlignedSegment], output_path: Path):
     """Saves a list of AlignedSegments to a CSV file."""
     import csv
+
     csv_headers = ["Start (s)", "End (s)", "Segment"]
     with open(output_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(csv_headers)
         for seg in segments:
             writer.writerow([f"{seg.start:.3f}", f"{seg.end:.3f}", seg.text])
-
 
 
 if __name__ == "__main__":

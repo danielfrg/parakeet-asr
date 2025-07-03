@@ -103,8 +103,9 @@ class ParakeetASR:
         except Exception as e:
             raise IOError(f"Error loading audio file {audio_path}: {e}")
 
-
-    def transcribe(self, audio_path: Optional[Union[str, Path]] = None) -> List[AlignedSegment]:
+    def transcribe(
+        self, audio_path: Optional[Union[str, Path]] = None
+    ) -> List[AlignedSegment]:
         """
         Transcribes the audio file using a sliding-window approach with
         segment merging for long audios.
@@ -150,7 +151,9 @@ class ParakeetASR:
                     )
                 ):
                     end_ms = start_ms + (self.chunk_duration_sec * 1000)
-                    chunk_audio = self.audio[start_ms : min(end_ms, total_audio_length_ms)]
+                    chunk_audio = self.audio[
+                        start_ms : min(end_ms, total_audio_length_ms)
+                    ]
 
                     if not chunk_audio.duration_seconds > 0.1:
                         # Skip very short (near-empty) chunks
@@ -301,29 +304,6 @@ class ParakeetASR:
             # Add segments from list_b that start after the cutoff
             merged.extend([s for s in list_b if s.start >= cutoff_time])
             return merged
-
-    def save_transcription_outputs(
-        self, segments: List[AlignedSegment], base_output_path: Path
-    ):
-        """
-        Saves the transcribed segments to SRT and CSV files.
-
-        Args:
-            segments (List[AlignedSegment]): The list of transcribed segments.
-            base_output_path (Path): The base path for output files (e.g., audio_name.srt, audio_name.csv).
-        """
-        output_dir = base_output_path.parent
-        audio_name = base_output_path.stem
-
-        # Save SRT
-        srt_path = output_dir / f"{audio_name}_transcription.srt"
-        save_segments_to_srt(segments, srt_path)
-        print(f"SRT transcript saved to: {srt_path}")
-
-        # Save CSV
-        csv_path = output_dir / f"{audio_name}_transcription.csv"
-        save_segments_to_csv(segments, csv_path)
-        print(f"CSV transcript saved to: {csv_path}")
 
     def __del__(self):
         self.cleanup()
