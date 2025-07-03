@@ -1,0 +1,30 @@
+[project]
+name = "parakeet-asr"
+version = "0.1.0"
+description = "ASR based on NVIDIA parakeet model"
+readme = "README.md"
+authors = [
+    { name = "Daniel Rodriguez", email = "daniel@danielfrg.com" }
+]
+requires-python = "==3.12.*"
+dependencies = [
+    "click>=8.2.1",
+    "nemo-toolkit[asr]>=2.1.0",
+    "numpy==1.*",
+]
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1.402",
+    "ruff>=0.12.1",
+]
+
+[project.scripts]
+parakeet = "parakeet_asr.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv.workspace]
+members = ["temp2"]
