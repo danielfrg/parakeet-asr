@@ -9,11 +9,13 @@ from .segment import AlignedSegment, generate_srt_from_segments
 
 @click.command(
     help="""
-Transcribe a long audio files robustly using NVIDIA Parakeet-TDT ASR model.
+Transcribe long audio files robustly using NVIDIA Parakeet-TDT ASR model.
 """
 )
 @click.argument(
-    "input_file",
+    "input_files",
+    nargs=-1,
+    required=True,
     type=click.Path(exists=True, dir_okay=False, path_type=Path),
 )
 @click.option(
@@ -34,13 +36,13 @@ Transcribe a long audio files robustly using NVIDIA Parakeet-TDT ASR model.
     show_default=False,
 )
 def main(
-    input_file: Path,
+    input_files: tuple[Path, ...],
     output_dir: Optional[Path],
     model: str,
     device: Optional[str],
     format: str,
 ):
-    # Load here so the CLI is faster to respond
+    # Load torch here so the CLI is faster to respond to non run commands
     import torch
     from .model import ParakeetASR, AlignedSegment
 
@@ -48,39 +50,55 @@ def main(
         device = "cuda" if torch.cuda.is_available() else "cpu"
     click.echo(f"Using device: {device}")
 
-    # Set output directory to input file's directory if not specified
-    if output_dir is None:
-        output_dir = input_file.parent
+    if not input_files:
+        click.echo("Error: No input files provided.", err=True)
+        sys.exit(1)
+
+    click.echo(f"Processing {len(input_files)} file(s)...")
 
     try:
-        transcriber = ParakeetASR(
-            model_name=model,
-            device=device,
-            chunk_duration_sec=120,
-            overlap_duration_sec=15,
-            nemo_log_level=50,
-        )
+        for i, input_file in enumerate(input_files, 1):
+            # Set output directory to input file's directory if not specified
+            current_output_dir = output_dir if output_dir is not None else input_file.parent
 
-        click.echo(f"Starting transcription of '{input_file.name}'...")
-        segments: List[AlignedSegment] = transcriber.transcribe(input_file)
+            # Initialize the transcriber for each file (required)
+            transcriber = ParakeetASR(
+                model_name=model,
+                device=device,
+                chunk_duration_sec=120,
+                overlap_duration_sec=15,
+                nemo_log_level=50,
+            )
 
-        if not segments:
-            click.echo("No transcription result was generated.", err=True)
-            sys.exit(1)
+            click.echo(f"[{i}/{len(input_files)}] Starting transcription of '{input_file.name}'...")
 
-        if format == "srt":
-            save_segments_to_srt(segments, output_dir / f"{input_file.stem}.srt")
-        elif format == "csv":
-            save_segments_to_csv(segments, output_dir / f"{input_file.stem}.csv")
-        else:
-            click.echo(f"Invalid format: {format}", err=True)
-            sys.exit(1)
-    except FileNotFoundError as e:
-        click.echo(f"Error: {e}", err=True)
-        sys.exit(1)
-    except IOError as e:
-        click.echo(f"Error processing audio file: {e}", err=True)
-        sys.exit(1)
+            try:
+                segments: List[AlignedSegment] = transcriber.transcribe(input_file)
+
+                if not segments:
+                    click.echo(f"Warning: No transcription result was generated for '{input_file.name}'.", err=True)
+                    continue
+
+                if format == "srt":
+                    save_segments_to_srt(segments, current_output_dir / f"{input_file.stem}.srt")
+                elif format == "csv":
+                    save_segments_to_csv(segments, current_output_dir / f"{input_file.stem}.csv")
+                else:
+                    click.echo(f"Invalid format: {format}", err=True)
+                    sys.exit(1)
+
+                click.echo(f"✓ Completed transcription of '{input_file.name}'")
+
+            except FileNotFoundError as e:
+                click.echo(f"Error processing '{input_file.name}': {e}", err=True)
+                continue
+            except IOError as e:
+                click.echo(f"Error processing audio file '{input_file.name}': {e}", err=True)
+                continue
+            except Exception as e:
+                click.echo(f"Error processing '{input_file.name}': {e}", err=True)
+                continue
+
     except ValueError as e:
         click.echo(f"Configuration Error: {e}", err=True)
         sys.exit(1)
