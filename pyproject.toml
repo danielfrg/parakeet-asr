@@ -9,7 +9,7 @@ authors = [
 requires-python = "==3.12.*"
 dependencies = [
     "click>=8.2.1",
-    "nemo-toolkit[asr]>=2.1.0",
+    "nemo-toolkit[asr]==2.3.1",
     "numpy==1.*",
 ]
 

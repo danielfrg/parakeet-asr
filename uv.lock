@@ -1541,7 +1541,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "click", specifier = ">=8.2.1" },
-    { name = "nemo-toolkit", extras = ["asr"], specifier = ">=2.1.0" },
+    { name = "nemo-toolkit", extras = ["asr"], specifier = "==2.3.1" },
     { name = "numpy", specifier = "==1.*" },
 ]
 
