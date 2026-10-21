@@ -25,6 +25,3 @@ parakeet = "parakeet_asr.cli:main"
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
-
-[tool.uv.workspace]
-members = ["temp2"]

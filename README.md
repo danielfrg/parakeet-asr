@@ -12,7 +12,7 @@ ASR (Automatic Speech Recognition) using NVIDIA parakeet model.
 ```
 pip install parakeet-asr
 
-uv install parakeet-asr
+uv tool install parakeet-asr
 ```
 
 ## Usage
